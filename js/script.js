@@ -102,6 +102,31 @@ const inputLoanAmount = document.querySelector('.form__input--loan-amount');
 const inputCloseUsername = document.querySelector('.form__input--user');
 const inputClosePin = document.querySelector('.form__input--pin');
 
+// timer on the page
+const startLogOutTimer = () => {
+  let time = 120;
+
+  const tick = () => {
+    const min = String(Math.trunc(time / 60)).padStart(2, '0');
+    const sec = String(time % 60).padStart(2, 0);
+
+    labelTimer.textContent = `${min}:${sec}`;
+
+    if (time === 0) {
+      clearInterval(timer);
+      containerApp.style.opacity = 0;
+      labelWelcome.textContent = 'Log in to get started';
+    }
+
+    time--;
+  };
+
+  tick();
+  const timer = setInterval(tick, 1000);
+
+  return timer;
+};
+
 // format date
 const formatMovementDate = date => {
   const calcDaysPassed = (date1, date2) =>
@@ -210,7 +235,7 @@ const updateUI = account => {
 };
 
 // user login
-let currentAccount;
+let currentAccount, timer;
 
 btnLogin.addEventListener('click', e => {
   e.preventDefault();
@@ -220,6 +245,12 @@ btnLogin.addEventListener('click', e => {
   );
 
   if (currentAccount?.pin === +inputLoginPin.value) {
+    // for switch timers between users
+    if (timer) {
+      clearInterval(timer);
+    }
+    timer = startLogOutTimer();
+
     // show UI and message
     labelWelcome.textContent = `Welcome back, ${
       currentAccount.owner.split(' ')[0]
@@ -303,12 +334,15 @@ btnLoan.addEventListener('click', e => {
   );
 
   if (amount > 0 && isCanGiveCredit) {
-    // add movements
-    currentAccount.movements.push(amount);
-    // add loan date
-    currentAccount.movementsDates.push(new Date().toISOString());
-    // update user UI
-    updateUI(currentAccount);
+    // imitation waiting for a bank decision
+    setTimeout(() => {
+      // add movements
+      currentAccount.movements.push(amount);
+      // add loan date
+      currentAccount.movementsDates.push(new Date().toISOString());
+      // update user UI
+      updateUI(currentAccount);
+    }, 2000);
   } else {
     alert(
       'Very large amount. There should be no more than ten percent of the deposit'
